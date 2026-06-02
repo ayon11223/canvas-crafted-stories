@@ -425,7 +425,7 @@ function Index() {
 
         {/* Footer meta */}
         <footer className="flex items-end justify-between text-[0.65rem] uppercase tracking-[0.35em] text-white/40">
-          <span>move cursor · the field responds</span>
+          <span>move cursor · reveal the map of bangladesh</span>
           <span>v0.1 · est. 2026</span>
         </footer>
       </div>
