@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
-import bdPolygon from "@/lib/bd-polygon.json";
+import { BD_POLYGON } from "@/lib/bd-polygon";
 
 const BD_BOUNDS = { minLng: 88.0, maxLng: 92.7, minLat: 20.6, maxLat: 26.65 };
 const DIVISIONS: { name: string; lng: number; lat: number }[] = [
@@ -75,8 +75,7 @@ function NodeField() {
         -lat * scale + oy, // flip y
       ];
       mapPath = new Path2D();
-      const pts = bdPolygon as [number, number][];
-      pts.forEach(([lng, lat], i) => {
+      BD_POLYGON.forEach(([lng, lat], i) => {
         const [x, y] = proj(lng, lat);
         if (i === 0) mapPath.moveTo(x, y);
         else mapPath.lineTo(x, y);
