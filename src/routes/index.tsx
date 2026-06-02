@@ -1,5 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
+import bdPolygon from "@/lib/bd-polygon.json";
+
+const BD_BOUNDS = { minLng: 88.0, maxLng: 92.7, minLat: 20.6, maxLat: 26.65 };
+const DIVISIONS: { name: string; lng: number; lat: number }[] = [
+  { name: "Dhaka", lng: 90.41, lat: 23.81 },
+  { name: "Chattogram", lng: 91.78, lat: 22.36 },
+  { name: "Khulna", lng: 89.57, lat: 22.84 },
+  { name: "Rajshahi", lng: 88.6, lat: 24.37 },
+  { name: "Sylhet", lng: 91.87, lat: 24.9 },
+  { name: "Barishal", lng: 90.37, lat: 22.7 },
+  { name: "Rangpur", lng: 89.25, lat: 25.74 },
+  { name: "Mymensingh", lng: 90.42, lat: 24.75 },
+];
 
 export const Route = createFileRoute("/")({
   head: () => ({
