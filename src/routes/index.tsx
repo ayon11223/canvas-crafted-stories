@@ -4,6 +4,25 @@ import { BD_DISTRICTS } from "@/lib/bd-districts";
 
 const BD_BOUNDS = { minLng: 88.0, maxLng: 92.7, minLat: 20.6, maxLat: 26.65 };
 
+// Curated, well-spaced label set. All districts still render as outlines.
+const LABELED = new Set([
+  "Dhaka",
+  "Chittagong",
+  "Comilla",
+  "Mymensingh",
+  "Sylhet",
+  "Rangpur",
+  "Rajshahi",
+  "Cox's Bazar",
+  "Jessore",
+  "Noakhali",
+]);
+const LABEL_MAP: Record<string, string> = {
+  Chittagong: "Chattogram",
+  Comilla: "Cumilla",
+  Jessore: "Jashore",
+};
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -61,8 +80,11 @@ function NodeField() {
     const projectMap = () => {
       const bw = BD_BOUNDS.maxLng - BD_BOUNDS.minLng;
       const bh = BD_BOUNDS.maxLat - BD_BOUNDS.minLat;
-      const scale = Math.min(width / bw, height / bh) * 0.95;
-      const ox = (width - bw * scale) / 2 - BD_BOUNDS.minLng * scale;
+      const wide = width >= 900;
+      const scale = Math.min(width / bw, height / bh) * (wide ? 0.78 : 0.9);
+      // Push the map to the right on wide screens so it doesn't sit under the headline.
+      const centerX = wide ? width * 0.74 : width * 0.5;
+      const ox = centerX - (bw * scale) / 2 - BD_BOUNDS.minLng * scale;
       const oy = (height + bh * scale) / 2 + BD_BOUNDS.minLat * scale;
       const proj = (lng: number, lat: number): [number, number] => [
         lng * scale + ox,
@@ -185,12 +207,12 @@ function NodeField() {
           ctx.strokeStyle = `rgba(216,180,254,${0.8 * a})`;
           ctx.lineWidth = 1;
           ctx.stroke(d.path);
-          if (a > 0.45) {
+          if (a > 0.4 && LABELED.has(d.name)) {
             ctx.font = "600 9px ui-sans-serif, system-ui, sans-serif";
             ctx.textBaseline = "middle";
             ctx.textAlign = "center";
-            ctx.fillStyle = `rgba(240,225,255,${0.9 * (a - 0.3)})`;
-            ctx.fillText(d.name.toUpperCase(), d.cx, d.cy);
+            ctx.fillStyle = `rgba(240,225,255,${0.95 * (a - 0.25)})`;
+            ctx.fillText((LABEL_MAP[d.name] ?? d.name).toUpperCase(), d.cx, d.cy);
           }
         }
       }
