@@ -79,7 +79,7 @@ function Editor() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
+    <div className="dark flex flex-col h-screen bg-background text-foreground overflow-hidden">
       <TopBar />
       <main
         className="flex-1 overflow-y-auto overflow-x-hidden pb-2 relative"
