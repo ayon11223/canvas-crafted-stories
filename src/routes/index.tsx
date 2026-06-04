@@ -289,8 +289,8 @@ function Index() {
             canvas.craft
           </Link>
           <nav className="flex items-center gap-6">
-            <Link to="/projects" className="transition hover:text-white">projects</Link>
-            <Link to="/login" className="transition hover:text-white">sign in</Link>
+            <Link to="/editor" className="transition hover:text-white">editor</Link>
+            <Link to="/auth" className="transition hover:text-white">sign in</Link>
           </nav>
         </header>
 
@@ -324,14 +324,14 @@ function Index() {
               style={{ animationDelay: "520ms", animationFillMode: "both" }}
             >
               <Link
-                to="/projects"
+                to="/editor"
                 className="group inline-flex items-center gap-3 rounded-full bg-white px-6 py-3 text-sm font-medium text-black transition hover:bg-white/90"
               >
                 Open a canvas
                 <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
               </Link>
-              <Link to="/projects" className="text-sm uppercase tracking-[0.3em] text-white/60 transition hover:text-white">
-                browse projects
+              <Link to="/auth" className="text-sm uppercase tracking-[0.3em] text-white/60 transition hover:text-white">
+                sign in
               </Link>
             </div>
           </div>
