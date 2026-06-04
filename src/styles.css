@@ -59,6 +59,15 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-canvas: var(--canvas);
+  --color-canvas-foreground: var(--canvas-foreground);
+  --color-toolbar: var(--toolbar);
+  --color-chip: var(--chip);
+  --color-chip-foreground: var(--chip-foreground);
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --shadow-soft: 0 2px 14px -4px oklch(0 0 0 / 0.5);
+  --shadow-pop: 0 10px 30px -10px oklch(0 0 0 / 0.6);
 }
 
 :root {
@@ -95,6 +104,11 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+  --canvas: oklch(0.94 0.006 280);
+  --canvas-foreground: oklch(0.18 0.01 280);
+  --toolbar: oklch(0.12 0.008 280);
+  --chip: oklch(0.30 0.022 290);
+  --chip-foreground: oklch(0.96 0.005 280);
 }
 
 .dark {
@@ -130,6 +144,11 @@
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+  --canvas: oklch(0.94 0.006 280);
+  --canvas-foreground: oklch(0.18 0.01 280);
+  --toolbar: oklch(0.12 0.008 280);
+  --chip: oklch(0.30 0.022 290);
+  --chip-foreground: oklch(0.96 0.005 280);
 }
 
 @layer base {
@@ -142,3 +161,15 @@
     color: var(--color-foreground);
   }
 }
+
+/* MCQ editor surfaces */
+.canvas-paper {
+  background-color: var(--color-canvas);
+  background-image:
+    radial-gradient(oklch(0.7 0.02 280 / 0.35) 0.6px, transparent 0.6px),
+    radial-gradient(oklch(0.6 0.02 280 / 0.25) 0.5px, transparent 0.5px);
+  background-size: 18px 18px, 11px 11px;
+  background-position: 0 0, 7px 9px;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
