@@ -159,6 +159,7 @@ function DraggableItem({
   const isImage = item.kind === "image";
   const isTable = item.kind === "table" || item.kind === "matrix";
   const isMatrix = item.kind === "matrix";
+  const isSmartEq = item.kind === "smart-equation";
   const [editing, setEditing] = useState(false);
   const draggedRef = useRef(false);
 
@@ -250,6 +251,10 @@ function DraggableItem({
         ) : isImage ? (
           <div className="w-full h-full rounded-md bg-canvas-foreground/10 border border-dashed border-canvas-foreground/30 grid place-items-center text-canvas-foreground/50 text-[11px]">
             🖼 Image
+          </div>
+        ) : isSmartEq ? (
+          <div className="w-full h-full grid place-items-center text-canvas-foreground text-[14px] overflow-hidden">
+            <Equation itemId={item.id} item={item} />
           </div>
         ) : isTable ? (
           <TableGrid
