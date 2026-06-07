@@ -153,6 +153,69 @@ interface State {
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
+function defaultSlotsFor(template: EquationTemplate): Record<string, SlotNode[]> {
+  switch (template) {
+    case "fraction":
+      return { num: [], den: [] };
+    case "sqrt":
+      return { rad: [] };
+    case "nthroot":
+      return { idx: [], rad: [] };
+    case "power":
+      return { base: [], exp: [] };
+    case "derivative":
+      return { expr: [], wrt: [] };
+  }
+}
+
+function insertIntoNode(
+  slots: Record<string, SlotNode[]> | undefined,
+  nodeId: string,
+  slotKey: string,
+  node: SlotNode,
+): Record<string, SlotNode[]> | undefined {
+  if (!slots) return slots;
+  const out: Record<string, SlotNode[]> = {};
+  for (const [k, arr] of Object.entries(slots)) {
+    out[k] = arr.map((child) => {
+      if (child.id === nodeId) {
+        const childSlots = { ...(child.slots ?? {}) };
+        childSlots[slotKey] = [...(childSlots[slotKey] ?? []), node];
+        return { ...child, slots: childSlots };
+      }
+      return { ...child, slots: insertIntoNode(child.slots, nodeId, slotKey, node) };
+    });
+  }
+  return out;
+}
+
+function patchNode(
+  slots: Record<string, SlotNode[]> | undefined,
+  nodeId: string,
+  patch: Partial<SlotNode>,
+): Record<string, SlotNode[]> | undefined {
+  if (!slots) return slots;
+  const out: Record<string, SlotNode[]> = {};
+  for (const [k, arr] of Object.entries(slots)) {
+    out[k] = arr.map((child) =>
+      child.id === nodeId
+        ? { ...child, ...patch }
+        : { ...child, slots: patchNode(child.slots, nodeId, patch) },
+    );
+  }
+  return out;
+}
+
+export const newSlotNode = (kind: SlotNode["kind"], extra: Partial<SlotNode> = {}): SlotNode => ({
+  id: Math.random().toString(36).slice(2, 9),
+  kind,
+  value: "",
+  ...extra,
+  ...(kind === "smart-equation" && extra.template
+    ? { slots: defaultSlotsFor(extra.template) }
+    : {}),
+});
+
 const blankQuestion = (): Question => ({
   id: uid(),
   text: "",
