@@ -8,6 +8,10 @@ const CATEGORIES = ["Trigonometry", "Axis and Plane", "Circle", "Set & Function"
 
 const RECENT: { kind: ShapeKind; label?: string }[] = [
   { kind: "right-triangle" },
+  { kind: "equilateral-triangle" },
+  { kind: "isosceles-triangle" },
+  { kind: "scalene-triangle" },
+  { kind: "rhombus" },
   { kind: "venn" },
   { kind: "arc" },
   { kind: "cube" },

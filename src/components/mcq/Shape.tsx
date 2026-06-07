@@ -17,6 +17,24 @@ export function Shape({ kind, label, className }: Props) {
       {kind === "triangle" && (
         <polygon points="50,12 90,88 10,88" {...common} />
       )}
+      {kind === "equilateral-triangle" && (
+        <>
+          <polygon points="50,14 88,82 12,82" {...common} />
+          <text x="50" y="93" fontSize="7" textAnchor="middle" fill={stroke}>equilateral</text>
+        </>
+      )}
+      {kind === "isosceles-triangle" && (
+        <>
+          <polygon points="50,14 82,84 18,84" {...common} />
+          <line x1="50" y1="14" x2="50" y2="84" stroke={accent} strokeWidth={1} strokeDasharray="2 3" />
+        </>
+      )}
+      {kind === "scalene-triangle" && (
+        <polygon points="22,18 84,42 38,84" {...common} />
+      )}
+      {kind === "rhombus" && (
+        <polygon points="50,12 88,50 50,88 12,50" {...common} />
+      )}
       {kind === "right-triangle" && (
         <>
           <polygon points="14,14 86,86 14,86" {...common} />

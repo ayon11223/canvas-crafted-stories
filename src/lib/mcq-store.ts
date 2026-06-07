@@ -14,6 +14,10 @@ export const LABEL_STYLES: { id: LabelStyle; name: string; render: (i: number) =
 export type ShapeKind =
   | "triangle"
   | "right-triangle"
+  | "equilateral-triangle"
+  | "isosceles-triangle"
+  | "scalene-triangle"
+  | "rhombus"
   | "square"
   | "rectangle"
   | "circle"
@@ -25,11 +29,33 @@ export type ShapeKind =
   | "axis"
   | "line"
   | "equation"
+  | "smart-equation"
   | "text"
   | "image"
   | "table"
   | "matrix"
   | "chart";
+
+export type EquationTemplate =
+  | "fraction"
+  | "sqrt"
+  | "nthroot"
+  | "power"
+  | "derivative";
+
+export interface SlotNode {
+  id: string;
+  kind: "text" | "smart-equation";
+  value?: string;
+  template?: EquationTemplate;
+  slots?: Record<string, SlotNode[]>;
+}
+
+export interface ActiveSlot {
+  itemId: string;
+  nodeId: string | null; // null = top-level item slot
+  slotKey: string;
+}
 
 export interface CanvasItem {
   id: string;
@@ -43,6 +69,8 @@ export interface CanvasItem {
   rows?: number;
   cols?: number;
   data?: string[][];
+  template?: EquationTemplate;
+  slots?: Record<string, SlotNode[]>;
 }
 
 export interface Option {
@@ -81,6 +109,11 @@ interface State {
   equationsPickerOpen: boolean;
   gridViewOpen: boolean;
   tableDialog: { mode: TableMode } | null;
+  activeSlot: ActiveSlot | null;
+  setActiveSlot: (s: ActiveSlot | null) => void;
+  insertSlotNode: (target: ActiveSlot, node: SlotNode) => void;
+  updateSlotNode: (itemId: string, nodeId: string, patch: Partial<SlotNode>) => void;
+  addSmartEquation: (template: EquationTemplate) => void;
   setCurrent: (id: string) => void;
   addQuestion: () => void;
   reorderQuestions: (ids: string[]) => void;
@@ -120,6 +153,69 @@ interface State {
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
+function defaultSlotsFor(template: EquationTemplate): Record<string, SlotNode[]> {
+  switch (template) {
+    case "fraction":
+      return { num: [], den: [] };
+    case "sqrt":
+      return { rad: [] };
+    case "nthroot":
+      return { idx: [], rad: [] };
+    case "power":
+      return { base: [], exp: [] };
+    case "derivative":
+      return { expr: [], wrt: [] };
+  }
+}
+
+function insertIntoNode(
+  slots: Record<string, SlotNode[]> | undefined,
+  nodeId: string,
+  slotKey: string,
+  node: SlotNode,
+): Record<string, SlotNode[]> | undefined {
+  if (!slots) return slots;
+  const out: Record<string, SlotNode[]> = {};
+  for (const [k, arr] of Object.entries(slots)) {
+    out[k] = arr.map((child) => {
+      if (child.id === nodeId) {
+        const childSlots = { ...(child.slots ?? {}) };
+        childSlots[slotKey] = [...(childSlots[slotKey] ?? []), node];
+        return { ...child, slots: childSlots };
+      }
+      return { ...child, slots: insertIntoNode(child.slots, nodeId, slotKey, node) };
+    });
+  }
+  return out;
+}
+
+function patchNode(
+  slots: Record<string, SlotNode[]> | undefined,
+  nodeId: string,
+  patch: Partial<SlotNode>,
+): Record<string, SlotNode[]> | undefined {
+  if (!slots) return slots;
+  const out: Record<string, SlotNode[]> = {};
+  for (const [k, arr] of Object.entries(slots)) {
+    out[k] = arr.map((child) =>
+      child.id === nodeId
+        ? { ...child, ...patch }
+        : { ...child, slots: patchNode(child.slots, nodeId, patch) },
+    );
+  }
+  return out;
+}
+
+export const newSlotNode = (kind: SlotNode["kind"], extra: Partial<SlotNode> = {}): SlotNode => ({
+  id: Math.random().toString(36).slice(2, 9),
+  kind,
+  value: "",
+  ...extra,
+  ...(kind === "smart-equation" && extra.template
+    ? { slots: defaultSlotsFor(extra.template) }
+    : {}),
+});
+
 const blankQuestion = (): Question => ({
   id: uid(),
   text: "",
@@ -152,7 +248,61 @@ export const useMcq = create<State>((set, get) => ({
   equationsPickerOpen: false,
   tableDialog: null,
   gridViewOpen: false,
+  activeSlot: null,
+  setActiveSlot: (s) => set({ activeSlot: s }),
   setGridViewOpen: (v) => set({ gridViewOpen: v }),
+  insertSlotNode: (target, node) =>
+    set((s) => ({
+      questions: s.questions.map((q) => {
+        if (q.id !== s.currentId) return q;
+        return {
+          ...q,
+          items: q.items.map((it) => {
+            if (it.id !== target.itemId) return it;
+            if (target.nodeId === null) {
+              const slots = { ...(it.slots ?? {}) };
+              slots[target.slotKey] = [...(slots[target.slotKey] ?? []), node];
+              return { ...it, slots };
+            }
+            return { ...it, slots: insertIntoNode(it.slots, target.nodeId, target.slotKey, node) };
+          }),
+        };
+      }),
+    })),
+  updateSlotNode: (itemId, nodeId, patch) =>
+    set((s) => ({
+      questions: s.questions.map((q) => {
+        if (q.id !== s.currentId) return q;
+        return {
+          ...q,
+          items: q.items.map((it) => {
+            if (it.id !== itemId) return it;
+            return { ...it, slots: patchNode(it.slots, nodeId, patch) };
+          }),
+        };
+      }),
+    })),
+  addSmartEquation: (template) => {
+    const item: CanvasItem = {
+      id: uid(),
+      kind: "smart-equation",
+      x: 0.2,
+      y: 0.2,
+      w: 0.45,
+      h: 0.18,
+      template,
+      slots: defaultSlotsFor(template),
+    };
+    set((s) => ({
+      questions: s.questions.map((q) =>
+        q.id === s.currentId
+          ? { ...q, items: [...q.items, item], figureOpen: true, canvasSize: q.canvasSize === "closed" ? "half" : q.canvasSize }
+          : q,
+      ),
+      selectedItemId: item.id,
+      equationsPickerOpen: false,
+    }));
+  },
   setCurrent: (id) => set({ currentId: id, selectedItemId: null }),
   addQuestion: () => {
     const q = blankQuestion();

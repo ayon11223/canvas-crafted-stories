@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronsUpDown, X, Plus, Trash2 } from "lucide-react";
 import { useCurrentQuestion, useMcq, type CanvasItem } from "@/lib/mcq-store";
 import { Shape } from "./Shape";
+import { Equation } from "./Equation";
 
 const HEIGHTS = { closed: 120, half: 280, full: 460 } as const;
 
@@ -89,13 +90,35 @@ function numberOf(id: string) {
 
 function FigureArea() {
   const q = useCurrentQuestion();
-  const { selectedItemId, selectItem, updateCurrent } = useMcq();
+  const { selectedItemId, selectItem, updateCurrent, updateItem } = useMcq();
   const ref = useRef<HTMLDivElement>(null);
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!selectedItemId) return;
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
+    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+    const item = q.items.find((it) => it.id === selectedItemId);
+    if (!item) return;
+    e.preventDefault();
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    const stepPx = e.shiftKey ? 10 : 1;
+    const dx = (e.key === "ArrowLeft" ? -stepPx : e.key === "ArrowRight" ? stepPx : 0) / rect.width;
+    const dy = (e.key === "ArrowUp" ? -stepPx : e.key === "ArrowDown" ? stepPx : 0) / rect.height;
+    updateItem(item.id, {
+      x: Math.max(0, Math.min(1 - item.w, item.x + dx)),
+      y: Math.max(0, Math.min(1 - item.h, item.y + dy)),
+    });
+  };
 
   return (
     <div
       ref={ref}
-      className="flex-1 h-full relative"
+      data-canvas-root
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      className="flex-1 h-full relative outline-none"
       onPointerDown={(e) => {
         if (e.target === e.currentTarget) selectItem(null);
       }}
@@ -136,6 +159,7 @@ function DraggableItem({
   const isImage = item.kind === "image";
   const isTable = item.kind === "table" || item.kind === "matrix";
   const isMatrix = item.kind === "matrix";
+  const isSmartEq = item.kind === "smart-equation";
   const [editing, setEditing] = useState(false);
   const draggedRef = useRef(false);
 
@@ -227,6 +251,10 @@ function DraggableItem({
         ) : isImage ? (
           <div className="w-full h-full rounded-md bg-canvas-foreground/10 border border-dashed border-canvas-foreground/30 grid place-items-center text-canvas-foreground/50 text-[11px]">
             🖼 Image
+          </div>
+        ) : isSmartEq ? (
+          <div className="w-full h-full grid place-items-center text-canvas-foreground text-[14px] overflow-hidden">
+            <Equation itemId={item.id} item={item} />
           </div>
         ) : isTable ? (
           <TableGrid
