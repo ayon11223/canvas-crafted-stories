@@ -3,6 +3,8 @@ import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { Search, X, LayoutGrid, List } from "lucide-react";
 import { useMcq } from "@/lib/mcq-store";
 import { insertAtLastFocus } from "@/lib/last-focus";
+import { useEquationActions } from "./Equation";
+import type { EquationTemplate } from "@/lib/mcq-store";
 
 type Category =
   | "All"
@@ -138,6 +140,15 @@ export function EquationsPicker() {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<Category>("All");
   const [view, setView] = useState<"grid" | "list">("grid");
+  const insertEquation = useEquationActions();
+
+  const TEMPLATES: { id: EquationTemplate; label: string; preview: string }[] = [
+    { id: "fraction", label: "Fraction", preview: "a⁄b" },
+    { id: "sqrt", label: "Sqrt", preview: "√x" },
+    { id: "nthroot", label: "n-root", preview: "ⁿ√x" },
+    { id: "power", label: "Power", preview: "xⁿ" },
+    { id: "derivative", label: "Derivative", preview: "d/dx" },
+  ];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -251,6 +262,26 @@ export function EquationsPicker() {
             </div>
 
             <div className="px-4 mt-3 pb-5 max-h-[48vh] overflow-y-auto">
+              <p className="text-[10px] uppercase tracking-wider text-canvas-foreground/50 mb-2 font-semibold">
+                Templates
+              </p>
+              <div className="grid grid-cols-5 gap-1.5 mb-3">
+                {TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    onMouseDown={keepFocus}
+                    onClick={() => {
+                      insertEquation(t.id);
+                      setEquationsPickerOpen(false);
+                    }}
+                    title={t.label}
+                    className="h-14 flex flex-col items-center justify-center gap-0.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-canvas-foreground transition"
+                  >
+                    <span className="font-serif italic text-base">{t.preview}</span>
+                    <span className="text-[9px] uppercase tracking-wider text-canvas-foreground/60">{t.label}</span>
+                  </button>
+                ))}
+              </div>
               <p className="text-[10px] uppercase tracking-wider text-canvas-foreground/50 mb-2 font-semibold">
                 {tab} · {filtered.length}
               </p>
